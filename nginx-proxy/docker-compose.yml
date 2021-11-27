@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  proxy:
+    image: jwilder/nginx-proxy
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /home/user/tools/nginx_webproxy/certificats:/etc/nginx/certs:ro
+      - ./client_max_body_size.conf:/etc/nginx/conf.d/client_max_body_size.conf
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
+    networks:
+      - web
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    restart: always
+    depends_on:
+      - proxy
+    volumes:
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /home/user/tools/nginx_webproxy/certificats:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      DEFAULT_EMAIL: principal@shf.com.co
+    networks:
+      - web
+
+volumes:
+  vhost:
+  html:
+
+networks:
+  web:
+    external: true
+
+
+
+
